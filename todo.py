@@ -100,6 +100,43 @@ btn_add = tk.Button(frame_input, text="添加任务", font=("微软雅黑", 10),
                     bg="#4CAF50", fg="white", width=10, command=add_task)
 btn_add.pack(side=tk.LEFT)
 
+# 搜索框
+search_entry = tk.Entry(frame_input, font=("微软雅黑", 10), width=15, fg="gray")
+search_entry.pack(side=tk.LEFT, padx=(20, 5))
+search_entry.insert(0, "搜索任务...")
+
+# 搜索框焦点事件
+def on_search_focus_in(event):
+    if search_entry.get() == "搜索任务...":
+        search_entry.delete(0, tk.END)
+        search_entry.config(fg="black")
+
+def on_search_focus_out(event):
+    if search_entry.get() == "":
+        search_entry.insert(0, "搜索任务...")
+        search_entry.config(fg="gray")
+        refresh_task_list()  # 清空搜索时恢复全部任务
+
+def search_tasks():
+    """搜索任务功能"""
+    keyword = search_entry.get().strip()
+    if keyword == "搜索任务..." or keyword == "":
+        refresh_task_list()
+        return
+
+    task_listbox.delete(0, tk.END)
+    for task in tasks:
+        if keyword.lower() in task["text"].lower():
+            status = "✓ " if task["done"] else "○ "
+            display_text = status + task["text"]
+            task_listbox.insert(tk.END, display_text)
+            if task["done"]:
+                task_listbox.itemconfig(tk.END, fg="gray")
+
+search_entry.bind('<FocusIn>', on_search_focus_in)
+search_entry.bind('<FocusOut>', on_search_focus_out)
+search_entry.bind('<KeyRelease>', lambda e: search_tasks())
+
 # ============ 任务列表区域 ============
 frame_list = tk.Frame(root, padx=10, pady=5)
 frame_list.pack(fill=tk.BOTH, expand=True)
