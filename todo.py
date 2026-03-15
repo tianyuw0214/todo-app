@@ -2,7 +2,7 @@
 待办事项管理器 - 你的第一个 Python 桌面应用！
 功能：添加任务、删除任务、标记完成
 作者：你的名字
-版本：v1.1（添加了搜索功能）
+版本：v1.2（添加了优先级功能）
 """
 
 import tkinter as tk
@@ -34,8 +34,9 @@ def save_tasks():
 def add_task():
     """添加新任务"""
     task_text = task_entry.get().strip()
+    priority = priority_var.get()  # 获取优先级
     if task_text:
-        tasks.append({"text": task_text, "done": False})
+        tasks.append({"text": task_text, "done": False, "priority": priority})
         task_entry.delete(0, tk.END)
         refresh_task_list()
         save_tasks()
@@ -72,11 +73,18 @@ def refresh_task_list():
     task_listbox.delete(0, tk.END)
     for task in tasks:
         status = "✓ " if task["done"] else "○ "
-        display_text = status + task["text"]
+        priority = task.get("priority", "中")  # 兼容旧数据
+        priority_icon = {"高": "🔴", "中": "🟡", "低": "🟢"}.get(priority, "🟡")
+        display_text = f"{priority_icon} [{priority}] {status}{task['text']}"
         task_listbox.insert(tk.END, display_text)
-        # 完成的任务显示为灰色
+
+        # 设置颜色
         if task["done"]:
             task_listbox.itemconfig(tk.END, fg="gray")
+        else:
+            # 根据优先级设置颜色
+            color_map = {"高": "#f44336", "中": "#ff9800", "低": "#4CAF50"}
+            task_listbox.itemconfig(tk.END, fg=color_map.get(priority, "black"))
 
 
 # ============ 创建主窗口 ============
@@ -97,9 +105,17 @@ task_entry = tk.Entry(frame_input, font=("微软雅黑", 12), width=35)
 task_entry.pack(side=tk.LEFT, padx=(0, 10))
 task_entry.bind('<Return>', lambda e: add_task())  # 按回车添加
 
+# 优先级选择
+priority_var = tk.StringVar(value="中")
+priority_label = tk.Label(frame_input, text="优先级:", font=("微软雅黑", 10))
+priority_label.pack(side=tk.LEFT, padx=(20, 5))
+priority_combo = ttk.Combobox(frame_input, textvariable=priority_var,
+                               values=["高", "中", "低"], width=5, state="readonly")
+priority_combo.pack(side=tk.LEFT)
+
 btn_add = tk.Button(frame_input, text="添加任务", font=("微软雅黑", 10),
                     bg="#4CAF50", fg="white", width=10, command=add_task)
-btn_add.pack(side=tk.LEFT)
+btn_add.pack(side=tk.LEFT, padx=10)
 
 # 搜索框
 search_entry = tk.Entry(frame_input, font=("微软雅黑", 10), width=15, fg="gray")
