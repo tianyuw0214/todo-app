@@ -14,9 +14,6 @@ services:
         fromDatabase:
           name: todo-db
           property: connectionString
-      - key: PYTHON_VERSION
-        value: 3.11.0
-
 databases:
   - name: todo-db
     plan: free
