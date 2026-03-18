@@ -1,9 +1,9 @@
-// API 基础 URL，可从外部配置覆盖
-// 生产环境使用相对路径，开发环境使用 localhost
+// API 基础 URL
+// 合并部署后，API 在同一域名下的 /api 路径
 const API_URL = (typeof window !== 'undefined' && window.API_CONFIG?.baseUrl)
     || (window.location.hostname === 'localhost'
-        ? 'http://localhost:8000'
-        : '');  // 生产环境使用相对路径，自动匹配当前域名
+        ? 'http://localhost:8000/api'  // 本地开发
+        : '/api');  // 生产环境使用相对路径 /api
 let allTasks = [];
 let currentFilter = 'all'; // all, active, completed
 
