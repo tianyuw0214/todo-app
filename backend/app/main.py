@@ -18,10 +18,14 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI(title="待办事项 API", version="2.0")
 
 # CORS 配置
-# 注意：生产环境应该限制具体的来源，不要在生产环境使用 allow_origins=["*"]
+# 生产环境限制具体来源，开发环境允许 localhost
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 开发环境使用，生产环境应改为具体域名如 ["http://localhost:3000"]
+    allow_origins=[
+        "https://todo-app-xuro.onrender.com",  # 生产环境前端
+        "http://localhost:8000",  # 本地开发
+        "http://127.0.0.1:8000",
+    ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
