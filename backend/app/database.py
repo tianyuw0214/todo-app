@@ -28,6 +28,11 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
+def init_db():
+    """初始化数据库，创建所有表（如果不存在）"""
+    Base.metadata.create_all(bind=engine)
+
+
 def get_db():
     db = SessionLocal()
     try:

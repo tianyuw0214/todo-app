@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import List
 from . import models, schemas, crud
-from .database import engine, get_db
+from .database import engine, get_db, init_db
 
 # 配置日志
 logging.basicConfig(
@@ -16,7 +16,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-models.Base.metadata.create_all(bind=engine)
+# 启动时自动初始化数据库
+try:
+    init_db()
+    logger.info("数据库初始化成功")
+except Exception as e:
+    logger.error(f"数据库初始化失败: {e}")
 
 app = FastAPI(title="待办事项 API", version="2.0")
 
