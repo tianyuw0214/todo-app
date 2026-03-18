@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, Literal
 from datetime import datetime
 
@@ -10,7 +10,7 @@ class TaskBase(BaseModel):
     done: bool = False
     priority: PriorityType = "中"
 
-    @validator('text')
+    @field_validator('text')
     @classmethod
     def text_not_empty(cls, v: str) -> str:
         if not v or not v.strip():
@@ -27,7 +27,7 @@ class TaskUpdate(BaseModel):
     done: Optional[bool] = None
     priority: Optional[PriorityType] = None
 
-    @validator('text')
+    @field_validator('text')
     @classmethod
     def text_not_empty(cls, v: Optional[str]) -> Optional[str]:
         if v is not None:
@@ -43,4 +43,4 @@ class Task(TaskBase):
     updated_at: Optional[datetime] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
