@@ -1,0 +1,47 @@
+# Render 部署配置
+# 访问 https://dashboard.render.com/ 创建服务
+
+services:
+  # 后端 API 服务
+  - type: web
+    name: todo-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: todo-db
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: 3.11.0
+
+  # 前端静态站点
+  - type: static
+    name: todo-frontend
+    runtime: static
+    plan: free
+    buildCommand: echo "Frontend ready"
+    staticPublishPath: ./frontend
+    envVars:
+      - key: API_URL
+        value: https://todo-api.onrender.com
+
+  # 可选：如果使用自定义域名，可以配置重定向
+  # - type: web
+  #   name: todo-app
+  #   runtime: python
+  #   plan: free
+  #   buildCommand: pip install -r backend/requirements.txt
+  #   startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+  #   envVars:
+  #     - key: DATABASE_URL
+  #       fromDatabase:
+ #         name: todo-db
+  #         property: connectionString
+
+databases:
+  - name: todo-db
+    plan: free
+    ipAllowList: []  # 允许所有 IP 访问（仅用于开发）
