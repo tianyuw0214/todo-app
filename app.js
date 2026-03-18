@@ -1,26 +1,30 @@
-// API 基础 URL
-// 合并部署后，API 在同一域名下的 /api 路径
-const API_URL = (typeof window !== 'undefined' && window.API_CONFIG?.baseUrl)
-    || (window.location.hostname === 'localhost'
-        ? 'http://localhost:8000/api'  // 本地开发
-        : '/api');  // 生产环境使用相对路径 /api
+// 数据存储 key
+const STORAGE_KEY = 'todo-app-tasks';
+
 let allTasks = [];
 let currentFilter = 'all'; // all, active, completed
 
+// 从 localStorage 加载任务
+function loadTasksFromStorage() {
+    const data = localStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+}
+
+// 保存任务到 localStorage
+function saveTasksToStorage(tasks) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+}
+
+// 生成唯一 ID
+function generateId() {
+    return Date.now();
+}
+
 // 获取所有任务
-async function loadTasks() {
-    try {
-        const response = await fetch(`${API_URL}/tasks`);
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        allTasks = await response.json();
-        renderTasks();
-        updateStats();
-    } catch (error) {
-        console.error('加载任务失败:', error);
-        showError('无法连接到服务器，请确保后端服务已启动');
-    }
+function loadTasks() {
+    allTasks = loadTasksFromStorage();
+    renderTasks();
+    updateStats();
 }
 
 // 渲染任务列表
@@ -119,25 +123,8 @@ function setFilter(filter) {
     renderTasks();
 }
 
-// 处理 API 错误响应
-async function handleApiError(response, defaultMessage) {
-    if (response.status === 422) {
-        const error = await response.json();
-        const detail = error.detail;
-        if (Array.isArray(detail) && detail.length > 0) {
-            showError(`输入验证失败: ${detail[0].msg || '请检查输入'}`);
-        } else {
-            showError('输入验证失败，请检查输入内容');
-        }
-    } else if (response.status === 404) {
-        showError('任务不存在');
-    } else {
-        showError(`${defaultMessage} (${response.status})`);
-    }
-}
-
 // 添加任务
-async function addTask() {
+function addTask() {
     const input = document.getElementById('taskInput');
     const prioritySelect = document.getElementById('prioritySelect');
     const text = input.value.trim();
@@ -152,70 +139,53 @@ async function addTask() {
         return;
     }
 
-    try {
-        const response = await fetch(`${API_URL}/tasks`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                text: text,
-                done: false,
-                priority: prioritySelect.value
-            })
-        });
+    const now = new Date().toISOString();
+    const newTask = {
+        id: generateId(),
+        text: text,
+        done: false,
+        priority: prioritySelect.value,
+        created_at: now,
+        updated_at: now
+    };
 
-        if (response.status === 201) {
-            input.value = '';
-            document.getElementById('charCount').textContent = '0/500';
-            loadTasks();
-        } else {
-            await handleApiError(response, '添加任务失败');
-        }
-    } catch (error) {
-        console.error('添加任务失败:', error);
-        showError('添加任务失败，请检查网络连接');
-    }
+    allTasks.push(newTask);
+    saveTasksToStorage(allTasks);
+
+    input.value = '';
+    document.getElementById('charCount').textContent = '0/500';
+
+    renderTasks();
+    updateStats();
 }
 
 // 切换任务状态
-async function toggleTask(id, done) {
-    try {
-        const response = await fetch(`${API_URL}/tasks/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ done: done })
-        });
-
-        if (response.ok) {
-            loadTasks();
-        } else {
-            await handleApiError(response, '更新任务失败');
-        }
-    } catch (error) {
-        console.error('更新任务失败:', error);
-        showError('更新任务失败，请检查网络连接');
+function toggleTask(id, done) {
+    const task = allTasks.find(t => t.id === id);
+    if (!task) {
+        showError('任务不存在');
+        return;
     }
+
+    task.done = done;
+    task.updated_at = new Date().toISOString();
+
+    saveTasksToStorage(allTasks);
+    renderTasks();
+    updateStats();
 }
 
 // 删除任务
-async function deleteTask(id) {
+function deleteTask(id) {
     if (!confirm('确定要删除这个任务吗？')) {
         return;
     }
 
-    try {
-        const response = await fetch(`${API_URL}/tasks/${id}`, {
-            method: 'DELETE'
-        });
+    allTasks = allTasks.filter(t => t.id !== id);
+    saveTasksToStorage(allTasks);
 
-        if (response.status === 204 || response.ok) {
-            loadTasks();
-        } else {
-            await handleApiError(response, '删除任务失败');
-        }
-    } catch (error) {
-        console.error('删除任务失败:', error);
-        showError('删除任务失败，请检查网络连接');
-    }
+    renderTasks();
+    updateStats();
 }
 
 // 获取优先级样式类

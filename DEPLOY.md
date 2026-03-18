@@ -1,66 +1,65 @@
-# Render 部署指南
+# 部署指南
 
-## 快速部署步骤
+本应用是纯前端静态网站，可部署到任何静态托管服务。
 
-前后端已合并部署，只需创建一个 Web Service。
+## 推荐方案：GitHub Pages（免费）
 
-### 1. 创建 Render 账号
-访问 https://dashboard.render.com/ 注册账号（可用 GitHub 账号登录）
+1. 将代码推送到 GitHub 仓库
+2. 进入仓库 Settings → Pages
+3. Source 选择 "Deploy from a branch"
+4. Branch 选择 "master" 或 "main"，文件夹选择 "/ (root)"
+5. 点击 Save，等待几分钟
+6. 访问 `https://你的用户名.github.io/仓库名`
 
-### 2. 创建 PostgreSQL 数据库
-1. 点击 "New +" → "PostgreSQL"
-2. Name: `todo-db`
-3. Database: `todo_db`
-4. User: `todo_user`
-5. Region: 选离你近的（如 Singapore 或 Oregon）
-6. 点击 "Create Database"
-7. 等待创建完成（约 1-2 分钟）
+## 备选方案
 
-### 3. 部署应用
-1. 点击 "New +" → "Web Service"
-2. 连接你的 GitHub 仓库
-3. 配置：
-   - Name: `todo-app`（或你喜欢的名字）
-   - Runtime: Python 3
-   - Build Command: `pip install -r backend/requirements.txt`
-   - Start Command: `cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-4. 环境变量会自动从 `render.yaml` 读取，如果没有：
-   - 添加 `DATABASE_URL`，值从 PostgreSQL 页面复制
-5. 点击 "Create Web Service"
+### Netlify（推荐）
 
-### 4. 等待部署完成
-- 构建过程约 2-3 分钟
-- 部署完成后，会给你一个域名如 `https://todo-app-xxx.onrender.com`
-- 直接访问这个域名即可使用完整应用
+1. 访问 https://app.netlify.com/drop
+2. 将项目文件夹拖拽到页面上
+3. 自动获得临时域名，可绑定自定义域名
 
----
+### Vercel
 
-## 架构说明
-
-合并部署后：
-- `https://你的域名/` → 前端页面（HTML/CSS/JS）
-- `https://你的域名/api/tasks` → API 端点
-- `https://你的域名/api/` → API 信息
-
-不需要处理 CORS，因为前后端在同域名下。
-
----
-
-## 常见问题
-
-### 数据库迁移
-首次部署后需要创建表，可以在 Render Shell 中运行：
 ```bash
-cd backend
-python -c "from app.database import engine; from app import models; models.Base.metadata.create_all(bind=engine)"
+npm i -g vercel
+vercel
 ```
 
-### 免费额度限制
-- Web Service: 每月 750 小时（足够 24x7 运行一个服务）
-- PostgreSQL: 免费 90 天，可续期
-- 服务 15 分钟无访问会休眠，首次访问需要 30 秒左右唤醒
+### Render Static Site
 
-### 自定义域名
-1. 在 Render Dashboard 点击你的服务
-2. 点击 "Settings" → "Custom Domains"
-3. 按提示添加你的域名
+1. 访问 https://dashboard.render.com
+2. 创建 Static Site
+3. 连接 GitHub 仓库
+4. 保持默认设置，点击部署
+
+### Cloudflare Pages
+
+1. 登录 Cloudflare Dashboard
+2. 进入 Pages → Create a project
+3. 连接 GitHub 仓库
+4. 构建命令留空，输出目录留空
+5. 点击保存并部署
+
+### 腾讯云 COS / 阿里云 OSS
+
+1. 创建存储桶，开启静态网站托管
+2. 上传所有文件到存储桶
+3. 配置自定义域名（可选）
+
+## 文件清单
+
+部署时需要上传以下文件：
+
+```
+index.html
+app.js
+styles.css
+```
+
+## 注意事项
+
+- 无需服务器端环境（Node.js/Python 等）
+- 无需数据库
+- 数据存储在用户浏览器中，不涉及隐私数据传输
+- 建议使用 HTTPS，确保 localStorage 正常工作

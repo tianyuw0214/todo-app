@@ -1,85 +1,70 @@
-# 待办事项管理器 v2.0
+# 待办事项管理器
 
-基于 FastAPI + 原生 JavaScript 的现代化 Web 应用。
+纯前端待办事项应用，使用浏览器 localStorage 存储数据。
 
 ## 功能特性
 
-- ✅ 添加任务（支持设置优先级）
-- ✅ 删除任务
-- ✅ 标记完成/未完成
-- ✅ 搜索任务
-- ✅ 数据持久化（SQLite 数据库）
-- ✅ 现代化 UI 设计
+- 添加任务（支持设置优先级：高/中/低）
+- 标记完成/未完成
+- 删除任务
+- 筛选任务（全部/进行中/已完成）
+- 数据持久化（浏览器 localStorage）
+- 编辑风格 UI 设计
 
 ## 项目结构
 
 ```
 todo-app/
-├── backend/              # FastAPI 后端
-│   ├── app/
-│   │   ├── main.py       # API 入口
-│   │   ├── models.py     # 数据库模型
-│   │   ├── schemas.py    # 数据验证
-│   │   ├── crud.py       # 数据库操作
-│   │   └── database.py   # 数据库连接
-│   └── requirements.txt
-├── frontend/             # 前端界面
-│   ├── index.html        # 主页面
-│   ├── app.js            # 前端逻辑
-│   └── styles.css        # 样式
-├── migrate.py            # 数据迁移脚本
-├── start.py              # 启动脚本
-└── todo.py (旧)          # 原 tkinter 版本（已废弃）
+├── index.html    # 主页面
+├── app.js        # 前端逻辑
+├── styles.css    # 样式文件
+└── README.md     # 项目说明
 ```
 
 ## 快速开始
 
-### 1. 安装依赖
+直接在浏览器中打开 `index.html` 即可使用，无需安装任何依赖或启动服务器。
+
+### 本地开发
 
 ```bash
-pip install -r backend/requirements.txt
+# 使用任意本地服务器（可选）
+# Python 3
+python -m http.server 8000
+
+# Node.js
+npx serve
+
+# PHP
+php -S localhost:8000
 ```
 
-### 2. 启动服务
+然后访问 http://localhost:8000
 
-```bash
-python start.py
-```
+## 数据存储
 
-或使用以下命令分别启动：
+- 数据保存在浏览器的 localStorage 中
+- 每个用户的数据独立存储在自己的浏览器中
+- 清除浏览器数据会导致任务丢失
+- 存储限制约为 5-10MB（足够存储数千条任务）
 
-```bash
-# 启动后端
-cd backend
-uvicorn app.main:app --reload
+## 部署
 
-# 在浏览器中打开前端
-open frontend/index.html
-```
+支持任意静态托管服务，详见 [DEPLOY.md](DEPLOY.md)。
 
-### 3. 数据迁移（可选）
-
-如果需要将旧版本 tasks.json 的数据迁移到数据库：
-
-```bash
-python migrate.py
-```
-
-## API 文档
-
-启动后端后访问：http://localhost:8000/docs
-
-### API 端点
-
-| 方法 | 端点 | 说明 |
-|------|------|------|
-| GET | `/tasks` | 获取所有任务（支持 `?search=关键词`） |
-| POST | `/tasks` | 创建任务 |
-| PUT | `/tasks/{id}` | 更新任务 |
-| DELETE | `/tasks/{id}` | 删除任务 |
+推荐方案：
+- [GitHub Pages](https://pages.github.com/)（免费，最简单）
+- [Netlify](https://www.netlify.com/)（拖拽部署）
+- [Vercel](https://vercel.com/)（自动部署）
 
 ## 技术栈
 
-- **后端**: FastAPI + SQLAlchemy + SQLite
-- **前端**: HTML5 + TailwindCSS + 原生 JavaScript
-- **架构**: 前后端分离，RESTful API
+- HTML5
+- CSS3（原生样式，无框架）
+- 原生 JavaScript（ES6+）
+- localStorage API
+
+## 浏览器支持
+
+- Chrome / Edge / Firefox / Safari 最新版本
+- 支持移动端浏览器

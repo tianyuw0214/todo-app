@@ -4,104 +4,91 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-待办事项管理器 (Todo App) - 一个前后端分离的 Web 应用，用于管理日常任务。
+待办事项管理器 (Todo App) - 一个纯前端的待办事项 Web 应用。
 
-- **后端**: FastAPI + SQLAlchemy + SQLite
-- **前端**: 原生 HTML/CSS/JavaScript (无构建工具)
-- **架构**: RESTful API，前端通过 fetch 调用后端
+- **类型**: 纯前端静态网页应用
+- **存储**: 浏览器 localStorage
+- **架构**: 单页面应用，无需后端
 
-## Development Commands
+## Development
 
-### Start Development Server
+### 本地预览
 
-```bash
-# 启动后端 (前台运行)
-cd backend && python -m uvicorn app.main:app --reload --port 8000
-
-# 或使用启动脚本 (同时启动后端并保持运行)
-python start.py
-```
-
-后端启动后：
-- API: http://localhost:8000
-- API 文档: http://localhost:8000/docs
-- 前端页面: 直接打开 `frontend/index.html`
-
-### Install Dependencies
+直接打开 `index.html` 即可，或使用本地服务器：
 
 ```bash
-pip install -r backend/requirements.txt
+python -m http.server 8000
 ```
 
-### Data Migration
-
-```bash
-# 将旧版 tasks.json 数据迁移到 SQLite
-python migrate.py
-```
-
-## Architecture
-
-### Backend Structure (`backend/app/`)
+### 项目结构
 
 ```
-backend/
-├── app/
-│   ├── main.py       # FastAPI 路由定义，API 入口
-│   ├── models.py     # SQLAlchemy 数据库模型 (Task)
-│   ├── schemas.py    # Pydantic 数据验证模型
-│   ├── crud.py       # 数据库 CRUD 操作封装
-│   └── database.py   # SQLite 连接和 Session 管理
-├── requirements.txt
-└── todos.db          # SQLite 数据库文件 (自动生成)
+todo-app/
+├── index.html   # 主页面，包含 HTML 结构和内联样式
+├── app.js       # 前端逻辑：localStorage 操作、DOM 操作、事件处理
+├── styles.css   # 样式文件（当前内联在 HTML 中，可提取）
+├── README.md    # 项目说明
+└── DEPLOY.md    # 部署指南
 ```
 
-**Key Architecture Points:**
-- 使用 SQLAlchemy ORM 进行数据库操作
-- 数据库文件 `todos.db` 自动生成在 backend 目录
-- CORS 已配置为允许所有来源 (`allow_origins=["*"]`)，方便本地开发
+### 核心功能实现
 
-### API Endpoints
+**数据存储 (app.js)**:
+```javascript
+const STORAGE_KEY = 'todo-app-tasks';
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/tasks` | 获取所有任务，支持 `?search=关键词` 搜索 |
-| POST | `/tasks` | 创建新任务 |
-| PUT | `/tasks/{id}` | 更新任务 (标记完成/修改内容) |
-| DELETE | `/tasks/{id}` | 删除任务 |
+// 从 localStorage 加载
+function loadTasksFromStorage() {
+    const data = localStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+}
 
-### Frontend Structure
+// 保存到 localStorage
+function saveTasksToStorage(tasks) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+}
 
+// 生成 ID
+function generateId() {
+    return Date.now();
+}
 ```
-frontend/
-├── index.html   # 单页面应用，包含所有 HTML 结构
-├── app.js       # 前端逻辑：API 调用、DOM 操作、事件处理
-└── styles.css   # 样式文件 (可选，当前内联在 HTML 中)
+
+**任务数据结构**:
+```javascript
+{
+    id: number,              // 时间戳生成的唯一 ID
+    text: string,            // 任务内容
+    done: boolean,           // 是否完成
+    priority: '高'|'中'|'低', // 优先级
+    created_at: ISOString,   // 创建时间
+    updated_at: ISOString    // 更新时间
+}
 ```
 
-**Key Points:**
-- 前端是静态文件，直接浏览器打开即可
-- 需要后端运行在 localhost:8000
-- 使用原生 fetch API 与后端通信
+## 重要文件
 
-## Database Schema
+- `app.js` - 核心逻辑，修改功能从这里开始
+- `index.html` - UI 结构，样式内联在 `<style>` 标签中
 
-**Task 表:**
-- `id`: Integer, Primary Key
-- `text`: String, 任务内容
-- `done`: Boolean, 是否完成
-- `priority`: String, 优先级 (高/中/低)
-- `created_at`: DateTime, 创建时间
-- `updated_at`: DateTime, 更新时间
+## 部署
 
-## Important Files
+支持任何静态托管服务：
+- GitHub Pages（推荐，免费）
+- Netlify（拖拽部署）
+- Vercel（自动部署）
+- 腾讯云 COS / 阿里云 OSS
 
-- `backend/app/main.py` - API 路由，添加新端点在这里
-- `backend/app/models.py` - 数据库模型，修改表结构需要删除 todos.db 重新生成
-- `frontend/app.js` - 前端逻辑，API 基础 URL: `http://localhost:8000`
-- `migrate.py` - 从旧版 JSON 数据迁移到数据库
+详见 `DEPLOY.md`
 
-## Legacy Code
+## 浏览器限制
 
-- `todo.py.bak` - 原 tkinter 桌面版本 (已废弃，保留作参考)
-- `tasks.json` - 旧版数据文件，可用 migrate.py 迁移
+- localStorage 容量限制：约 5-10MB
+- 数据绑定到特定域名
+- 清除浏览器数据会导致任务丢失
+- 每个用户的数据独立存储
+
+## 遗留代码
+
+- `todo.py.bak` - 原 tkinter 桌面版本（如存在可删除）
+- `backend/` - 原 Flask 后端（已删除）
